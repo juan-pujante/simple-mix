@@ -1,0 +1,64 @@
+{
+  "name": "simple-mix",
+  "version": "2.1.4",
+  "description": "Cross-platform multitrack audio editor for arranging and mastering mixes",
+  "main": "src/main/electron.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build": "node scripts/build.cjs",
+    "test:smoke": "electron tests/smoke.cjs",
+    "test:native": "electron tests/native-smoke.cjs",
+    "test": "npm run test:smoke && npm run test:native && npm run test:mastering && npm run test:boot && npm run test:studio && npm run test:audit && npm run test:audio && npm run test:gain",
+    "test:mastering": "electron tests/mastering-smoke.cjs",
+    "version:build": "node scripts/version.cjs build",
+    "version:minor": "node scripts/version.cjs minor",
+    "version:major": "node scripts/version.cjs major",
+    "test:boot": "electron tests/boot-smoke.cjs",
+    "test:studio": "electron tests/studio-smoke.cjs",
+    "test:audit": "electron tests/audit-smoke.cjs",
+    "test:audio": "electron tests/audio-regression.cjs",
+    "test:gain": "electron tests/gain-smoke.cjs"
+  },
+  "devDependencies": {
+    "electron": "^42.0.0",
+    "electron-builder": "^26.0.0",
+    "ffmpeg-static": "^5.3.0"
+  },
+  "build": {
+    "appId": "com.simplemix.desktop",
+    "productName": "Simple Mix",
+    "files": [
+      "src/**/*",
+      "assets/brand/*.png",
+      "LICENSE",
+      "docs/THIRD-PARTY-NOTICES.md"
+    ],
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/brand/icon.icns",
+      "artifactName": "Simple-Mix-${version}-macOS-${arch}.${ext}"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/brand/icon.ico",
+      "artifactName": "Simple-Mix-${version}-Windows-${arch}-Setup.${ext}"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/brand/app-icon.png"
+    },
+    "afterPack": "scripts/after-pack.cjs",
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Simple Mix",
+      "artifactName": "Simple-Mix-${version}-Windows-${arch}-Setup.${ext}"
+    },
+    "license": "MIT"
+  },
+  "license": "MIT"
+}

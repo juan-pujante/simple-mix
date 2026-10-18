@@ -1,0 +1,87 @@
+name: Build and publish release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS arm64
+            os: macos-14
+            target: --mac dmg:arm64 --config.mac.identity=null
+          - name: macOS x64
+            os: macos-15-intel
+            target: --mac dmg:x64 --config.mac.identity=null
+          - name: Windows x64
+            os: windows-latest
+            target: --win nsis:x64 --config.win.signExecutable=false
+          - name: Linux x64 AppImage
+            os: ubuntu-22.04
+            target: --linux AppImage:x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Linux audio and display dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb pulseaudio libasound2
+          pulseaudio --start --exit-idle-time=-1
+      - name: Run tests on Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm test
+      - name: Run tests on Windows and macOS
+        if: runner.os != 'Linux'
+        run: npm test
+      - name: Verify tag matches application version
+        shell: bash
+        run: test "${GITHUB_REF_NAME}" = "v$(node -p 'require("./package.json").version')"
+      - name: Build installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run build -- --keep-version ${{ matrix.target }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: simple-mix-${{ matrix.name }}
+          path: |
+            dist/**/*.dmg
+            dist/**/*.exe
+            dist/**/*.AppImage
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: simple-mix-*
+          path: release-assets
+          merge-multiple: true
+      - name: Generate release checksums
+        run: cd release-assets && sha256sum * > SHA256SUMS.txt
+      - name: Create release and upload installers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" release-assets/* --title "Simple Mix ${RELEASE_TAG#v}" --generate-notes

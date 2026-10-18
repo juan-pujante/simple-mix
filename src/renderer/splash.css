@@ -1,0 +1,19 @@
+:root { color-scheme: dark; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background: #222529; color: #e7ebef; }
+* { box-sizing: border-box; }
+html,body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+body { -webkit-app-region: drag; border: 1px solid #4b515a; }
+main { display: flex; flex-direction: column; height: 100%; padding: 24px 28px; }
+.splash-top { display: flex; justify-content: space-between; align-items: center; color: #c2c9d2; font-size: 12px; font-weight: 550; }
+#version { font: 10px ui-monospace,SFMono-Regular,Consolas,monospace; color: #99a5b4; }
+.identity { display: flex; align-items: center; gap: 16px; flex: 1; padding-bottom: 4px; }
+.identity img { border-radius: 9px; }
+h1 { font-size: 25px; font-weight: 550; letter-spacing: -.8px; line-height: 1.2; margin: 0 0 8px; }
+p { font-size: 12px; line-height: 1.5; color: #aab5c3; margin: 0; }
+.boot-status { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #414a57; padding-top: 14px; }
+.loading { font-size: 11px; color: #b9c5d5; }
+.loading-mark { height: 3px; width: 42px; border-radius: 2px; overflow: hidden; background: #445166; }
+.loading-mark:after { content: ''; display: block; height: 100%; width: 18px; background: #f39876; animation: loading 1s ease-in-out infinite alternate; }
+@keyframes loading { to { transform: translateX(24px); } }
+@media(prefers-reduced-motion:reduce) { .loading-mark:after { animation: none; } }
+
+.splash-indicator { width: 18px; height: 3px; background: #f39876; border-radius: 2px; }

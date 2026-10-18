@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+artifacts/
+dist-mastering/
+.backups/
+.cache/
+AGENTS.md
+AUDIT.txt

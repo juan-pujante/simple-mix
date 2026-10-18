@@ -1,0 +1,26 @@
+const { contextBridge, ipcRenderer } = require('electron');
+contextBridge.exposeInMainWorld('simpleMix', {
+  onAction: callback => {const listener=(_event,action)=>callback(action);ipcRenderer.on('studio:action',listener);return ()=>ipcRenderer.removeListener('studio:action',listener);},
+  newProject: () => ipcRenderer.invoke('simplemix:new-project'),
+  adoptRecent: file => ipcRenderer.invoke('simplemix:adopt-recent',file),
+  previewMaster: value => ipcRenderer.invoke('studio:preview', value),
+  preferences: value => ipcRenderer.invoke('studio:preferences', value),
+  recent: file => ipcRenderer.invoke('studio:recent', file),
+  openRecent: file => ipcRenderer.invoke('simplemix:open-recent', file),
+  setBusy: value => ipcRenderer.invoke('studio:busy', value),
+  setDirty: value => ipcRenderer.invoke('studio:dirty', value),
+  closeApproved: () => ipcRenderer.invoke('studio:close'),
+  onClose: callback => { const listener=()=>callback();ipcRenderer.on('studio:close-request',listener);return ()=>ipcRenderer.removeListener('studio:close-request',listener); },
+  recovery: value => ipcRenderer.invoke('studio:recovery', value),
+  cancelAudio: id => ipcRenderer.invoke('studio:audio-cancel', id),
+  processAudio: value => ipcRenderer.invoke('studio:audio', value),
+  beginExport: value => ipcRenderer.invoke('studio:export-begin', value),
+  appendExport: value => ipcRenderer.invoke('studio:export-append', value),
+  finishExport: id => ipcRenderer.invoke('studio:export-finish', id),
+  cancelExport: id => ipcRenderer.invoke('studio:export-cancel', id),
+  onExportProgress: callback => { const listener=(_event,value)=>callback(value);ipcRenderer.on('studio:export-progress',listener);return ()=>ipcRenderer.removeListener('studio:export-progress',listener); },
+  openProject: () => ipcRenderer.invoke('simplemix:open-project'),
+  acceptProject: token => ipcRenderer.invoke('simplemix:accept-project', token),
+  saveProject: options => ipcRenderer.invoke('simplemix:save-project', options),
+  exportAudio: options => ipcRenderer.invoke('simplemix:export-audio', options)
+});

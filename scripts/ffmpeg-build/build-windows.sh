@@ -39,7 +39,10 @@ FFMPEG_CONFIGURE_FLAGS+=(
     --arch=$ARCH
     --cross-prefix=$ARCH-w64-mingw32-
     --ar=ar
+    --nm=nm
     --ranlib=ranlib
+    --strip=strip
+    --pkg-config=pkg-config
 )
 
 ./configure "${FFMPEG_CONFIGURE_FLAGS[@]}"

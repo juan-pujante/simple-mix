@@ -32,5 +32,15 @@ tar --strip-components=1 -xf $BASE_DIR/$LAME_TARBALL
     --disable-gtktest \
     "$@"
 
-make
-make install
+case "$(uname -s)" in
+    MINGW*|MSYS*)
+        # Git for Windows sets SHELL to a path containing spaces. Autotools
+        # embeds it into libtool, whose install step then splits that path.
+        make SHELL=/usr/bin/bash
+        make SHELL=/usr/bin/bash install
+        ;;
+    *)
+        make
+        make install
+        ;;
+esac

@@ -106,11 +106,14 @@ jobs:
         shell: bash
         run: |
           mkdir -p release-assets
-          find release-artifacts -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.AppImage' \) -exec cp {} release-assets/ \;
+          find release-artifacts -mindepth 2 -maxdepth 2 -type f \( -name '*.dmg' -o -name '*-Setup.exe' -o -name '*.AppImage' \) -exec cp {} release-assets/ \;
           cp release-artifacts/simple-mix-macos/ffmpeg-8.1.2.tar.gz release-assets/
           cp release-artifacts/simple-mix-macos/lame-3.100.tar.gz release-assets/
-          test -n "$(find release-assets -maxdepth 1 -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.AppImage' \) -print -quit)"
-          sha256sum release-assets/* > release-assets/SHA256SUMS.txt
+          version="${GITHUB_REF_NAME#v}"
+          mv release-assets/*.AppImage "release-assets/Simple-Mix-${version}-Linux-x64.AppImage"
+          test -f "release-assets/Simple-Mix-${version}-Windows-x64-Setup.exe"
+          test -f "release-assets/Simple-Mix-${version}-macOS-arm64.dmg"
+          (cd release-assets && sha256sum * > SHA256SUMS.txt)
           ls -lh release-assets
       - name: Create GitHub Release
         env:

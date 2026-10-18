@@ -24,15 +24,6 @@ trap 'rm -rf $BUILD_DIR' EXIT
 cd $BUILD_DIR
 tar --strip-components=1 -xf $BASE_DIR/$LAME_TARBALL
 
-case "$(uname -s)" in
-    MINGW*|MSYS*)
-        # Avoid embedding Git for Windows' unquoted path with spaces in
-        # Autotools-generated Makefiles and libtool scripts.
-        export SHELL=/usr/bin/bash
-        export CONFIG_SHELL=/usr/bin/bash
-        ;;
-esac
-
 ./configure \
     --prefix=$LAME_PREFIX \
     --enable-static \
@@ -42,4 +33,15 @@ esac
     "$@"
 
 make
-make install
+case "$(uname -s)" in
+    MINGW*|MSYS*)
+        # Libtool's install helper invokes Git for Windows' shell through a
+        # path with spaces. Stage the two FFmpeg inputs directly instead.
+        mkdir -p $LAME_PREFIX/include/lame $LAME_PREFIX/lib
+        cp include/lame.h $LAME_PREFIX/include/lame/lame.h
+        cp libmp3lame/.libs/libmp3lame.a $LAME_PREFIX/lib/libmp3lame.a
+        ;;
+    *)
+        make install
+        ;;
+esac

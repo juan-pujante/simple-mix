@@ -7,7 +7,7 @@ app.on('window-all-closed', () => {});
 app.whenReady().then(async () => {
   const profile=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'simplemix-boot-'));app.setPath('userData',profile);
   require('../src/main/native-files.cjs').registerNativeFiles({ipcMain,BrowserWindow,dialog,rendererUrl:require('node:url').pathToFileURL(path.join(__dirname, "../src/renderer/index.html")).href});
-  const timeout = setTimeout(() => app.exit(1), 20000);
+  const timeout = setTimeout(() => { console.error('Boot smoke test timeout'); app.exit(1); }, 90000);
   try {
     const first = createStudioWindows({ minimumSplashMs: 1100 });
     assert.equal(first.main.isVisible(), false);

@@ -1,87 +1,97 @@
-name: Build and publish release
+name: Build and publish desktop release
 
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  build:
-    name: Build (${{ matrix.name }})
+  package:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: macOS arm64
+          - id: macos
             os: macos-14
-            target: --mac dmg:arm64 --config.mac.identity=null
-          - name: macOS x64
-            os: macos-15-intel
-            target: --mac dmg:x64 --config.mac.identity=null
-          - name: Windows x64
+            target: --mac --arm64
+          - id: windows
             os: windows-latest
-            target: --win nsis:x64 --config.win.signExecutable=false
-          - name: Linux x64 AppImage
+            target: --win --x64
+          - id: linux
             os: ubuntu-22.04
-            target: --linux AppImage:x64
+            target: --linux --x64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - name: Install Linux audio and display dependencies
+      - uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows'
+        with:
+          msystem: MINGW64
+          update: true
+          install: make mingw-w64-x86_64-toolchain mingw-w64-x86_64-pkgconf nasm yasm curl tar perl
+      - name: Install Linux build and audio dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb pulseaudio libasound2
-          pulseaudio --start --exit-idle-time=-1
-      - name: Run tests on Linux
-        if: runner.os == 'Linux'
-        run: xvfb-run -a npm test
-      - name: Run tests on Windows and macOS
+          sudo apt-get install -y build-essential pkg-config nasm yasm curl tar perl xvfb pulseaudio pulseaudio-utils libasound2 libfuse2
+          pulseaudio --start --exit-idle-time=-1 --log-target=stderr
+          for attempt in {1..10}; do pactl info >/dev/null 2>&1 && break; sleep 1; done
+          pactl load-module module-null-sink sink_name=simplemix-ci rate=44100
+          pactl set-default-sink simplemix-ci
+      - run: npm ci
+      - name: Verify release tag and app version
+        id: version
+        run: node -e "const fs=require('node:fs');const v=require('./package.json').version;if(process.env.GITHUB_REF_NAME!=='v'+v)throw Error('Release tag must match package version');fs.appendFileSync(process.env.GITHUB_OUTPUT,'version='+v+'\\n')"
+      - name: Run desktop tests
         if: runner.os != 'Linux'
         run: npm test
-      - name: Verify tag matches application version
-        shell: bash
-        run: test "${GITHUB_REF_NAME}" = "v$(node -p 'require("./package.json").version')"
+      - name: Run desktop tests on Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm test
       - name: Build installer
+        run: npm run build -- --keep-version ${{ matrix.target }}
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-        run: npm run build -- --keep-version ${{ matrix.target }}
+          MSYSTEM: MINGW64
       - uses: actions/upload-artifact@v7
         with:
-          name: simple-mix-${{ matrix.name }}
-          path: |
-            dist/**/*.dmg
-            dist/**/*.exe
-            dist/**/*.AppImage
+          name: simple-mix-${{ matrix.id }}
+          path: dist/${{ steps.version.outputs.version }}/*
           if-no-files-found: error
           retention-days: 14
 
   publish:
-    name: Publish GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    needs: package
+    runs-on: ubuntu-22.04
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/download-artifact@v7
         with:
           pattern: simple-mix-*
-          path: release-assets
-          merge-multiple: true
-      - name: Generate release checksums
-        run: cd release-assets && sha256sum * > SHA256SUMS.txt
-      - name: Create release and upload installers
+          path: release-artifacts
+          merge-multiple: false
+      - name: Assemble release assets and checksums
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          find release-artifacts -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.AppImage' \) -exec cp {} release-assets/ \;
+          cp release-artifacts/simple-mix-macos/ffmpeg-8.1.2.tar.gz release-assets/
+          cp release-artifacts/simple-mix-macos/lame-3.100.tar.gz release-assets/
+          test -n "$(find release-assets -maxdepth 1 -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.AppImage' \) -print -quit)"
+          sha256sum release-assets/* > release-assets/SHA256SUMS.txt
+          ls -lh release-assets
+      - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
-        run: gh release create "$RELEASE_TAG" release-assets/* --title "Simple Mix ${RELEASE_TAG#v}" --generate-notes
+        run: gh release create "${GITHUB_REF_NAME}" release-assets/* --verify-tag --title "Simple Mix ${GITHUB_REF_NAME#v}" --notes-file "docs/RELEASE_NOTES_${GITHUB_REF_NAME#v}.md"

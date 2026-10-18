@@ -4,6 +4,7 @@ const path = require('node:path');
 const os = require('node:os');
 const { pathToFileURL } = require('node:url');
 const { promisify } = require('node:util');
+const { once } = require('node:events');
 const execFile = promisify(require('node:child_process').execFile);
 const { registerNativeFiles, ffmpegBinary } = require('../src/main/native-files.cjs');
 app.whenReady().then(async () => {
@@ -93,6 +94,20 @@ app.whenReady().then(async () => {
     await new Promise(resolve=>setTimeout(resolve,250));
     const artifactDir=path.join(__dirname,'..','artifacts');await fs.mkdir(artifactDir,{recursive:true});await fs.writeFile(path.join(artifactDir,'export-settings.png'),(await win.webContents.capturePage()).toPNG());
     clearTimeout(timeout); console.log(JSON.stringify({ checks }, null, 2));
-    await fs.rm(root, { recursive: true, force: true }); app.exit(0);
-  } catch (error) { clearTimeout(timeout); console.error(error); await fs.rm(root, { recursive: true, force: true }); app.exit(1); }
+    await finish(0);
+  } catch (error) { clearTimeout(timeout); console.error(error); await finish(1); }
+
+  async function finish(code) {
+    clearTimeout(timeout);
+    if (!win.isDestroyed()) win.destroy();
+    const quitting = once(app, 'will-quit');
+    app.quit();
+    await quitting;
+    // Chromium keeps profile files open briefly on Windows after its windows close.
+    for (let attempt = 0; attempt < 8; attempt++) {
+      try { await fs.rm(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 250 }); break; }
+      catch (error) { if (!['EBUSY', 'EPERM', 'ENOTEMPTY'].includes(error.code) || attempt === 7) { console.warn('Temporary profile cleanup deferred:', error.message); break; } await new Promise(resolve => setTimeout(resolve, 500)); }
+    }
+    process.exitCode = code;
+  }
 });

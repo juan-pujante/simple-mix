@@ -25,8 +25,14 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb pulseaudio libasound2
-          pulseaudio --start --exit-idle-time=-1
+          sudo apt-get install -y xvfb pulseaudio pulseaudio-utils libasound2
+          pulseaudio --start --exit-idle-time=-1 --log-target=stderr
+          for attempt in {1..10}; do
+            if pactl info >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          pactl load-module module-null-sink sink_name=simplemix-ci rate=44100
+          pactl set-default-sink simplemix-ci
       - name: Tests on Linux
         if: runner.os == 'Linux'
         run: xvfb-run -a npm test

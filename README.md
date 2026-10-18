@@ -1,6 +1,6 @@
 # Simple Mix
 
-Simple Mix is a cross-platform multitrack audio editor for crafting, arranging and mastering mixes across genres. Arrange tracks on a visual timeline, tune their tempo, shape transitions, then export a finished session. The project targets Windows, macOS and Linux.
+Simple Mix is a cross-platform multitrack audio editor for crafting, arranging and mastering mixes. Arrange tracks on a visual timeline, tune their tempo, shape transitions, then export a finished session. The project targets Windows, macOS and Linux.
 
 ![Simple Mix multitrack editor](docs/images/simple-mix-editor.png)
 
@@ -19,9 +19,7 @@ See the [User Guide](docs/USER_GUIDE.md) for project, editing and export instruc
 
 ## Get the app
 
-The current project version is **2.1.4**. No verified installers are currently published on GitHub Releases. Earlier Windows and macOS packages are not being distributed while the bundled FFmpeg builds and their source availability are reviewed.
-
-Linux packaging is configured as an AppImage target, but no Linux installer has been produced. Installers will be attached to GitHub Releases after the FFmpeg distribution checks are cleared for all platforms.
+The current project version is **2.1.4**. Download the Windows, macOS or Linux installer from [GitHub Releases](https://github.com/juan-pujante/simple-mix/releases). Linux releases use the AppImage format. Release notes include platform-specific installation details and checksums.
 
 ## Run from source
 
@@ -58,11 +56,7 @@ Platform-specific packaging and release steps are documented in [Releasing](docs
 
 Electron, Web Audio, JavaScript and FFmpeg. Audio analysis and rendering run locally; source audio is not uploaded by the application.
 
-## Project status
-
-Version 2.1.4 was previously packaged for macOS Apple Silicon, macOS Intel and Windows x64, but those installers are not part of this public repository. See the [2.1.4 release notes](docs/RELEASE_NOTES_2.1.4.md) for feature details and distribution status.
-
-Tempo and key detection are estimates and can be corrected manually. Loudness matching is a starting point for balancing tracks; always listen through the complete mix before release.
+Tempo and key detection are estimates and can be corrected manually. Loudness matching is a starting point for balancing tracks; always listen through the complete mix before release. Platform signing and notarization status is listed in each release.
 
 ## License
 

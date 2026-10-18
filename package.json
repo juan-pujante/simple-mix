@@ -7,6 +7,7 @@
     "start": "electron .",
     "dev": "electron .",
     "build": "node scripts/build.cjs",
+    "build:ffmpeg": "node scripts/build-ffmpeg.cjs",
     "test:smoke": "electron tests/smoke.cjs",
     "test:native": "electron tests/native-smoke.cjs",
     "test": "npm run test:smoke && npm run test:native && npm run test:mastering && npm run test:boot && npm run test:studio && npm run test:audit && npm run test:audio && npm run test:gain",
@@ -57,8 +58,7 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Simple Mix",
       "artifactName": "Simple-Mix-${version}-Windows-${arch}-Setup.${ext}"
-    },
-    "license": "MIT"
+    }
   },
   "license": "MIT"
 }

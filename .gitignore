@@ -5,5 +5,8 @@ artifacts/
 dist-mastering/
 .backups/
 .cache/
+/scripts/ffmpeg-build/ffmpeg-*.tar.gz
+/scripts/ffmpeg-build/lame-*.tar.gz
+/scripts/ffmpeg-build/artifacts/
 AGENTS.md
 AUDIT.txt

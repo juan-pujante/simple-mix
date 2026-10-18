@@ -18,7 +18,7 @@ function ffmpegBinary() {
   if (require('electron').app.isPackaged) {
     return path.join(process.resourcesPath, 'ffmpeg', 'ffmpeg' + (process.platform === 'win32' ? '.exe' : ''));
   }
-  return require('ffmpeg-static');
+  return process.env.SIMPLEMIX_FFMPEG || require('ffmpeg-static');
 }
 function runEncoder(binary, args) {
   return new Promise((resolve, reject) => {

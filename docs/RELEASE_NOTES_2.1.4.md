@@ -1,6 +1,6 @@
 # Simple Mix 2.1.4
 
-Simple Mix 2.1.4 packages the desktop app for Windows x64, macOS Apple Silicon and macOS Intel. This build includes per-track loudness matching alongside the multitrack editing and export workflow.
+Simple Mix 2.1.4 packages the desktop app for Windows x64, macOS Apple Silicon and Linux x64. This build includes per-track loudness matching alongside the multitrack editing and export workflow.
 
 ## Highlights
 
@@ -15,11 +15,10 @@ Simple Mix 2.1.4 packages the desktop app for Windows x64, macOS Apple Silicon a
 
 | Platform | Package |
 | --- | --- |
-| Windows x64 | Previously built; not published |
-| macOS Apple Silicon | Previously built; not published |
-| macOS Intel | Previously built; not published |
-| Linux x64 | No 2.1.4 installer was built. AppImage is the configured future release target; Debian packages are not included. |
+| Windows x64 | NSIS installer (`.exe`) |
+| macOS Apple Silicon | Disk image (`.dmg`) |
+| Linux x64 | AppImage (`.AppImage`) |
 
-The earlier Windows and macOS packages are withheld while the bundled FFmpeg build configurations and corresponding source are reviewed. No installer is available from this repository. The earlier macOS Apple Silicon app was smoke-tested; native Windows and Intel Mac installation tests remain pending.
+The installers use FFmpeg 8.1.2 and LAME 3.100 built with LGPL-compatible options. Their corresponding source archives, licenses, checksums and installer checksums are included with the release. These builds are not notarized or code-signed for public distribution; consult the platform installation prompts before opening them.
 
 Automatic BPM and key analysis are estimates and may need manual correction. The optional mastering stage is not a substitute for listening to the complete exported mix.

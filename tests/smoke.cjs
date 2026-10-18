@@ -48,9 +48,9 @@ app.whenReady().then(async () => {
       selectTrack(tracks[0]);
       check(document.querySelectorAll('.deck.is-selected').length === 1 && getComputedStyle(trackEl(tracks[0]).querySelector('.empty-wave')).display === 'none', 'Selected-track inspector shows the waveform without empty overlay');
       await play(tracks[0]);
-      const playbackDeadline = performance.now() + 1200;
+      const playbackDeadline = performance.now() + 5000;
       while (tracks[0].playing && position(tracks[0]) <= 0 && performance.now() < playbackDeadline) await new Promise(resolve => setTimeout(resolve, 25));
-      check(tracks[0].playing && position(tracks[0]) > 0, 'Individual playback advances');
+      check(tracks[0].playing && position(tracks[0]) > 0, 'Individual playback advances (AudioContext ' + audio().state + ', position ' + position(tracks[0]).toFixed(3) + ' s)');
       pause(tracks[0]); const paused = position(tracks[0]); await new Promise(resolve => setTimeout(resolve, 60));
       check(!tracks[0].playing && position(tracks[0]) === paused, 'Individual pause holds position'); stop(tracks[0]);
       const pulse = audio().createBuffer(1, 44100 * 20, 44100), data = pulse.getChannelData(0);

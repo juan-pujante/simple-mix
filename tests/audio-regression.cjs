@@ -51,9 +51,9 @@ app.whenReady().then(async()=>{
   for(const delta of [37,-53]){
    const before=await run(`const c=document.querySelector('.clip'),row=c.parentElement,r=row.getBoundingClientRect();window.draggedClip=c;return {x:Math.round(r.left+r.width*.55),y:Math.round(r.top+r.height*.5),width:r.width,start:tracks[0].start,other:tracks[1].start,view:view.start,span:timelineDuration,hash:pixelHash(c.querySelector('canvas')).hash};`);
    win.webContents.sendInputEvent({type:'mouseMove',x:before.x,y:before.y});win.webContents.sendInputEvent({type:'mouseDown',x:before.x,y:before.y,button:'left',clickCount:1});
-   win.webContents.sendInputEvent({type:'mouseMove',x:before.x+delta,y:before.y});await new Promise(r=>setTimeout(r,50));
+   win.webContents.sendInputEvent({type:'mouseMove',x:before.x+delta,y:before.y,movementX:delta,movementY:0,button:'left'});await new Promise(r=>setTimeout(r,50));
    const during=await run(`const c=document.querySelector('.clip'),r=c.getBoundingClientRect(),row=c.parentElement.getBoundingClientRect();return {connected:c===draggedClip&&c.isConnected,visible:!c.hidden&&r.left>=row.left-1&&r.width>row.width*.95,...pixelHash(c.querySelector('canvas')),start:tracks[0].start,other:tracks[1].start,view:view.start,span:timelineDuration};`);
-   check(during.connected&&during.visible&&during.ink>100&&during.hash!==before.hash,`Waveform redraws visibly while dragging ${delta>0?'right':'left'} inside a zoomed clip`);
+   check(during.connected&&during.visible&&during.ink>100&&during.hash!==before.hash,`Waveform redraws visibly while dragging ${delta>0?'right':'left'} inside a zoomed clip: ${JSON.stringify({during,beforeHash:before.hash})}`);
    check(Math.abs(during.start-(Math.round((before.start+delta/before.width*before.span)*44100)/44100))<1e-9&&Math.abs((during.other-during.start)-(before.other-before.start))<1e-12,'Free dragging preserves group offsets without snapping to the grid');
    win.webContents.sendInputEvent({type:'mouseUp',x:before.x+delta,y:before.y,button:'left',clickCount:1});await new Promise(r=>setTimeout(r,30));
    check(await run(`return view.start===${before.view}&&Math.abs(timelineDuration-${before.span})<1e-12;`),'Releasing a drag preserves viewport origin and time scale');

@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 const { createStudioWindows } = require('../src/main/desktop-window.cjs');
+app.disableHardwareAcceleration();
 app.on('window-all-closed', () => {});
 app.whenReady().then(async () => {
   const profile=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'simplemix-boot-'));app.setPath('userData',profile);

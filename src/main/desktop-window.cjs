@@ -8,13 +8,15 @@ function createStudioWindows({ showSplash = true, minimumSplashMs = 850 } = {}) 
   const splash = showSplash ? new BrowserWindow({ show: false, width: 460, height: 254, frame: false, resizable: false, maximizable: false, minimizable: false, backgroundColor: '#222529', icon, skipTaskbar: true, webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true } }) : null;
   for(const window of [main,splash].filter(Boolean)){window.webContents.setWindowOpenHandler(()=>({action:'deny'}));window.webContents.on('will-navigate',event=>event.preventDefault());window.webContents.on('will-attach-webview',event=>event.preventDefault());}
   let resizeTimer;main.on('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!main.isDestroyed()){const [w,h]=main.getSize();require('./studio-native.cjs').savePreferences({window:{width:w,height:h}}).catch(()=>{});}},500);});
-  let timer, shownAt = null;
+  let timer, fallbackTimer, shownAt = null, revealed = false;
   const closeSplash = () => { if (splash && !splash.isDestroyed()) splash.destroy(); };
-  main.once('closed', () => { clearTimeout(timer); closeSplash(); });
+  main.once('closed', () => { clearTimeout(timer); clearTimeout(fallbackTimer); closeSplash(); });
   const ready = new Promise((resolve, reject) => {
-    const reveal = () => { closeSplash(); if (!main.isDestroyed()) { main.show(); main.focus(); } resolve(); };
-    main.once('ready-to-show', () => { timer = setTimeout(reveal, shownAt === null ? 0 : Math.max(0, minimumSplashMs - (Date.now() - shownAt))); });
-    main.webContents.once('did-fail-load', (_event, code, description, _url, isMainFrame) => { if (!isMainFrame) return; clearTimeout(timer); closeSplash(); if (!main.isDestroyed()) main.show(); reject(new Error(`No se pudo iniciar el editor (${code}): ${description}`)); });
+    const reveal = () => { if (revealed) return; revealed = true; clearTimeout(timer); clearTimeout(fallbackTimer); closeSplash(); if (!main.isDestroyed()) { main.show(); main.focus(); } resolve(); };
+    const scheduleReveal = () => { timer = setTimeout(reveal, shownAt === null ? 0 : Math.max(0, minimumSplashMs - (Date.now() - shownAt))); };
+    main.once('ready-to-show', scheduleReveal);
+    main.webContents.once('did-finish-load', () => { fallbackTimer = setTimeout(scheduleReveal, 1000); });
+    main.webContents.once('did-fail-load', (_event, code, description, _url, isMainFrame) => { if (!isMainFrame) return; clearTimeout(timer); clearTimeout(fallbackTimer); closeSplash(); if (!main.isDestroyed()) main.show(); reject(new Error(`No se pudo iniciar el editor (${code}): ${description}`)); });
   });
   if (splash) {
     splash.once('ready-to-show', () => { if (!main.isDestroyed() && !main.isVisible()) { shownAt = Date.now(); splash.show(); } else closeSplash(); });

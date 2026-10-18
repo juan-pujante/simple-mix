@@ -38,6 +38,8 @@ FFMPEG_CONFIGURE_FLAGS+=(
     --target-os=mingw32
     --arch=$ARCH
     --cross-prefix=$ARCH-w64-mingw32-
+    --ar=ar
+    --ranlib=ranlib
 )
 
 ./configure "${FFMPEG_CONFIGURE_FLAGS[@]}"

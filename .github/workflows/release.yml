@@ -50,7 +50,7 @@ jobs:
       - run: npm ci
       - name: Verify release tag and app version
         id: version
-        run: node -e "const fs=require('node:fs');const v=require('./package.json').version;if(process.env.GITHUB_REF_NAME!=='v'+v)throw Error('Release tag must match package version');fs.appendFileSync(process.env.GITHUB_OUTPUT,'version='+v+'\\n')"
+        run: node -e "const fs=require('node:fs');const v=require('./package.json').version;if(process.env.GITHUB_REF_NAME!=='v'+v)throw Error('Release tag must match package version');fs.appendFileSync(process.env.GITHUB_OUTPUT,'version='+v+String.fromCharCode(10))"
       - name: Run smoke tests
         if: runner.os != 'Linux'
         run: npm run test:smoke

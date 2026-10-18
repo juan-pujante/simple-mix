@@ -24,6 +24,15 @@ trap 'rm -rf $BUILD_DIR' EXIT
 cd $BUILD_DIR
 tar --strip-components=1 -xf $BASE_DIR/$LAME_TARBALL
 
+case "$(uname -s)" in
+    MINGW*|MSYS*)
+        # Avoid embedding Git for Windows' unquoted path with spaces in
+        # Autotools-generated Makefiles and libtool scripts.
+        export SHELL=/usr/bin/bash
+        export CONFIG_SHELL=/usr/bin/bash
+        ;;
+esac
+
 ./configure \
     --prefix=$LAME_PREFIX \
     --enable-static \
@@ -32,15 +41,5 @@ tar --strip-components=1 -xf $BASE_DIR/$LAME_TARBALL
     --disable-gtktest \
     "$@"
 
-case "$(uname -s)" in
-    MINGW*|MSYS*)
-        # Git for Windows sets SHELL to a path containing spaces. Autotools
-        # embeds it into libtool, whose install step then splits that path.
-        make SHELL=/usr/bin/bash
-        make SHELL=/usr/bin/bash install
-        ;;
-    *)
-        make
-        make install
-        ;;
-esac
+make
+make install

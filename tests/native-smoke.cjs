@@ -7,6 +7,7 @@ const { promisify } = require('node:util');
 const { once } = require('node:events');
 const execFile = promisify(require('node:child_process').execFile);
 const { registerNativeFiles, ffmpegBinary } = require('../src/main/native-files.cjs');
+app.on('window-all-closed', () => {});
 app.whenReady().then(async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'simplemix-native-test-'));
   app.setPath('userData',path.join(root,'profile'));await fs.mkdir(app.getPath('userData'),{recursive:true});

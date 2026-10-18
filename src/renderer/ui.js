@@ -56,7 +56,7 @@ function refreshCustomSelects(){
       if(event.key==='Tab'){closeCustomSelect();return;}
       if(['ArrowDown','ArrowUp','Home','End','Enter',' ','Escape'].includes(event.key)){
         event.preventDefault();event.stopPropagation();if(event.key==='Escape'){closeCustomSelect();return;}
-        if(!activeSelect||activeSelect.select!==select){openCustomSelect(select);return;}
+        if(!activeSelect||activeSelect.select!==select){openCustomSelect(select);if(activeSelect&&['Home','End'].includes(event.key)){activeSelect.index=event.key==='Home'?0:activeSelect.options.length-1;activeSelect.highlight();}return;}
         const a=activeSelect;if(event.key==='Enter'||event.key===' '){a.choose(a.index);return;}
         a.index=event.key==='Home'?0:event.key==='End'?a.options.length-1:Math.max(0,Math.min(a.options.length-1,a.index+(event.key==='ArrowDown'?1:-1)));a.highlight();
       }else if(event.key.length===1&&!event.ctrlKey&&!event.metaKey){if(!activeSelect||activeSelect.select!==select)openCustomSelect(select);const a=activeSelect;if(!a)return;const next=a.options.findIndex(o=>o.textContent.trim().toLowerCase().startsWith(event.key.toLowerCase()));if(next>=0){a.index=next;a.highlight();}}

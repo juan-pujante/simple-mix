@@ -86,7 +86,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: simple-mix-${{ matrix.id }}
-          path: dist/${{ steps.version.outputs.version }}/*
+          path: dist/${{ steps.version.outputs.version }}
           if-no-files-found: error
           retention-days: 14
 

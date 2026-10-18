@@ -51,9 +51,30 @@ jobs:
       - name: Verify release tag and app version
         id: version
         run: node -e "const fs=require('node:fs');const v=require('./package.json').version;if(process.env.GITHUB_REF_NAME!=='v'+v)throw Error('Release tag must match package version');fs.appendFileSync(process.env.GITHUB_OUTPUT,'version='+v+'\\n')"
-      - name: Run desktop tests
+      - name: Run smoke tests
         if: runner.os != 'Linux'
-        run: npm test
+        run: npm run test:smoke
+      - name: Run native tests
+        if: runner.os != 'Linux'
+        run: npm run test:native
+      - name: Run mastering tests
+        if: runner.os != 'Linux'
+        run: npm run test:mastering
+      - name: Run boot tests
+        if: runner.os != 'Linux'
+        run: npm run test:boot
+      - name: Run studio tests
+        if: runner.os != 'Linux'
+        run: npm run test:studio
+      - name: Run audit tests
+        if: runner.os != 'Linux'
+        run: npm run test:audit
+      - name: Run audio tests
+        if: runner.os != 'Linux'
+        run: npm run test:audio
+      - name: Run gain tests
+        if: runner.os != 'Linux'
+        run: npm run test:gain
       - name: Run desktop tests on Linux
         if: runner.os == 'Linux'
         run: xvfb-run -a npm test

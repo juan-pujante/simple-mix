@@ -3,6 +3,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
 const { pathToFileURL } = require('node:url');
+const { once } = require('node:events');
 const execFile = require('node:util').promisify(require('node:child_process').execFile);
 const { registerNativeFiles, ffmpegBinary } = require('../src/main/native-files.cjs');
 const { masteringOptions } = require('../src/main/mastering.cjs');
@@ -74,6 +75,19 @@ app.whenReady().then(async()=>{
     await run(`document.querySelector('#exportDialog').close();lastMasterReport=window.balancedMasterReport;showMasterReport();`);
     check(await run(`const d=document.querySelector('#masterReportDialog'),r=d.getBoundingClientRect();return d.open&&r.top>=0&&r.bottom<=innerHeight&&document.querySelector('#reportAfterLufs').textContent.includes('LUFS');`),'Measured before/after report is visible and fits the compact window');
     await new Promise(resolve=>setTimeout(resolve,200));await fs.writeFile(path.join(artifacts,'mastering-report.png'),(await win.webContents.capturePage()).toPNG());
-    clearTimeout(timeout);console.log(JSON.stringify({checks},null,2));await fs.rm(root,{recursive:true,force:true});app.exit(0);
-  }catch(error){clearTimeout(timeout);console.error(error);await fs.rm(root,{recursive:true,force:true});app.exit(1);}
+    clearTimeout(timeout);console.log(JSON.stringify({checks},null,2));await finish(0);
+  }catch(error){clearTimeout(timeout);console.error(error);await finish(1);}
+
+  async function finish(code){
+    clearTimeout(timeout);
+    if(!win.isDestroyed())win.destroy();
+    const quitting=once(app,'will-quit');
+    app.quit();
+    await quitting;
+    for(let attempt=0;attempt<8;attempt++){
+      try{await fs.rm(root,{recursive:true,force:true,maxRetries:3,retryDelay:250});break;}
+      catch(error){if(!['EBUSY','EPERM','ENOTEMPTY'].includes(error.code)||attempt===7){console.warn('Temporary profile cleanup deferred:',error.message);break;}await new Promise(resolve=>setTimeout(resolve,500));}
+    }
+    app.exit(code);
+  }
 });
